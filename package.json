@@ -1,0 +1,17 @@
+{
+  "name": "frontline-quick-deploy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@twilio/runtime-handler": "1.2.1",
+    "airtable": "^0.11.2",
+    "axios": "^0.26.0",
+    "twilio": "^3.75.0"
+  }
+}
