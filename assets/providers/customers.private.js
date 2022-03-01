@@ -23,7 +23,7 @@ const retrieveAirtableData = async (context) => {
     return new Promise((resolve, reject) => {
         let formattedCustomers = [];
     
-        base(context.AIRTABLE_TABLE_NAME).select({
+        base('Customers').select({
             view: "Grid view",
             pageSize: 100
         }).eachPage(function page(records, fetchNextPage) {
