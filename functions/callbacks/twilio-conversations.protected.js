@@ -49,7 +49,7 @@ exports.handler = async function(context, event, callback) {
              * including customer in which we are interested in.
              * 
              * It is required to add customer_id information to participant and
-             * optionally his display_name and avatar.
+             * optionally the display_name and avatar.
              * 
              * More info about the `onParticipantAdded` webhook: https://www.twilio.com/docs/conversations/conversations-webhooks#onparticipantadded
              * More info about the customer_id: https://www.twilio.com/docs/frontline/my-customers#customer-id

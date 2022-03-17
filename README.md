@@ -84,4 +84,7 @@ In the Twilio Console, go to ***Frontline > Manage > Callbacks*** and copy / pas
 
 <img width="1535" alt="Screen Shot 2022-02-28 at 11 42 24 PM" src="https://user-images.githubusercontent.com/1418949/156145175-a458a1d8-62be-433f-870c-31151f5996a6.png">
 
+### Conversations Setup Callbacks
+This callback receives the `onConversationAdded` and `onParticipantAdded` events from the Conversations service and sets the name of the conversation as well as the participant and participant avatar that is joining the conversation.
 
+To set them up, go to ***Conversations > Services > Default Frontline Service > Webhooks***. Then select the `onConversationAdded` and `onParticipantAdded` events.
