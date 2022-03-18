@@ -48,6 +48,8 @@ TWILIO_WHATSAPP_NUMBER= # A Twilio WhatsApp sender, if you have one.
 
 AIRTABLE_API_KEY= # Your Airtable API key
 AIRTABLE_BASE_ID= # Your Airtable Base ID
+AIRTABLE_CUSTOMERS_TABLE_NAME= # Your Aitable Customers table name
+AIRTABLE_TEMPLATES_TABLE_NAME= # Your Aitable Templates table name
 ```
 
 ## Deploy

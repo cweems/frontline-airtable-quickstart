@@ -1,17 +1,3 @@
-// Map between template address and worker identity
-// Used to determine to which worker route a new conversation with a particular template
-//
-// {
-//     templateAddress: workerIdentity
-// }
-//
-// Example:
-//     {
-//         'whatsapp:+12345678': 'john@example.com'
-//     }
-
-// Create global variable to memoize template data
-// so that we do not ping airtable for all templates every page load
 let templates = [];
 
 // Retrieve templates from Airtable
@@ -23,7 +9,7 @@ const retrieveAirtableData = async (context) => {
     return new Promise((resolve, reject) => {
         let formattedTemplates = [];
 
-        base('Templates').select({
+        base(context.AIRTABLE_TEMPLATES_TABLE_NAME).select({
             view: "Grid view",
             pageSize: 100
         }).eachPage(function page(records, fetchNextPage) {

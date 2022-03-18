@@ -1,17 +1,3 @@
-// Map between customer address and worker identity
-// Used to determine to which worker route a new conversation with a particular customer
-//
-// {
-//     customerAddress: workerIdentity
-// }
-//
-// Example:
-//     {
-//         'whatsapp:+12345678': 'john@example.com'
-//     }
-
-// Create global variable to memoize customer data
-// so that we do not ping airtable for all customers every page load
 let customers = [];
 
 // Retrieve customers from Airtable
@@ -23,7 +9,7 @@ const retrieveAirtableData = async (context) => {
     return new Promise((resolve, reject) => {
         let formattedCustomers = [];
     
-        base('Customers').select({
+        base(context.AIRTABLE_CUSTOMERS_TABLE_NAME).select({
             view: "Grid view",
             pageSize: 100
         }).eachPage(function page(records, fetchNextPage) {
