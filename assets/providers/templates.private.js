@@ -1,81 +1,87 @@
-const mergeFields = (templateString, customerDetails) => {
-    try {
-        // Get all {{text}} instances
-        console.log('here @@@@@@')
-        function replacer (match) {
-            console.log(match);
-            if (customerDetails.hasOwnProperty(match)) {
-                return customerDetails[match]
-            }
-    
-            return `${match} is blank`
-        }
-    
-        // const result = templateString.replace(/(?<=\{{).+?(?=\}})/, replacer);
-        const result = templateString.replace(/{{(.+?)}}/g, replacer);
+// Map between template address and worker identity
+// Used to determine to which worker route a new conversation with a particular template
+//
+// {
+//     templateAddress: workerIdentity
+// }
+//
+// Example:
+//     {
+//         'whatsapp:+12345678': 'john@example.com'
+//     }
 
-        return result;
-    } catch (err) {
-        console.log(err);
-    }
-}
+// Create global variable to memoize template data
+// so that we do not ping airtable for all templates every page load
+let templates = [];
 
-const getTemplates = async (context, customerDetails) => {
+// Retrieve templates from Airtable
+// Example:
+const retrieveAirtableData = async (context) => {
     const Airtable = require('airtable');
-    const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
+    const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID);
 
     return new Promise((resolve, reject) => {
-        let templates = {};
-    
+        let formattedTemplates = [];
+
         base('Templates').select({
             view: "Grid view",
             pageSize: 100
         }).eachPage(function page(records, fetchNextPage) {
             // This function (`page`) will get called for each page of records.
-            
-            records.forEach(function(record) {
-                
-                let category = record.get('category');
-                let text = record.get('text');
 
-                let mergedText = mergeFields(text, customerDetails);
-
-                if (!templates.hasOwnProperty(category)) {
-                    const entry = {
-                        display_name: category,
-                        templates: [{content: mergedText}],
-                    }
-                    
-                    templates[category] = entry
-                } else {
-                    templates[category]['templates'].push({content: mergedText});
+            records.forEach(function (record) {
+                let formattedRecord = {
+                    template_id: record.get('id'),
+                    categoryName: record.get('categoryName')[0],
+                    content: record.get('content'),
+                    whatsAppApproved: record.get('whatsAppApproved')
                 }
+
+                formattedTemplates.push(formattedRecord);
             });
-        
+
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
             // If there are no more records, `done` will get called.
-            try {
-                console.log('fetching next page...')
-                fetchNextPage();
-            } catch (err) {
-                console.log('err', err);
-                throw new Error(err);
-            }
-        
+            console.log('fetching next page...')
+            fetchNextPage();
+
         }, function done(err) {
             if (err) { reject(err) }
-            let response = [];
-            for (const template in templates) {
-                response.push(templates[template]);
-            }
-            //console.log(response);
-            resolve(response);
+
+            const approvedTemplates = formattedTemplates.filter(template => {
+                if (template.whatsAppApproved) {
+                    return template;
+                }
+            });
+            resolve(approvedTemplates);
         });
     });
 
 }
 
+const getTemplatesList = async (context, pageSize, anchor) => {
+    console.log(pageSize, anchor);
+
+    // Pull airtable templates on first load, otherwise use
+    // what's stored in memory
+    if (anchor === undefined || templates.length === 0) {
+        templates = await retrieveAirtableData(context);
+    }
+
+    if (!pageSize) {
+        return templates
+    }
+
+    if (anchor) {
+        const lastIndex = templates.findIndex((c) => String(c.template_id) === String(anchor))
+        const nextIndex = lastIndex + 1
+        return templates.slice(nextIndex, nextIndex + pageSize)
+    } else {
+        return templates.slice(0, pageSize)
+    }
+};
+
 module.exports = {
-    getTemplates
-}
+    getTemplatesList
+};
