@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "twilio-run",
+    "deploy": "twilio-run deploy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -12,6 +14,8 @@
     "@twilio/runtime-handler": "1.2.1",
     "airtable": "^0.11.2",
     "axios": "^0.26.0",
-    "twilio": "^3.75.0"
+    "lodash": "^4.17.21",
+    "twilio": "^3.75.0",
+    "twilio-run": "^3.4.1"
   }
 }
