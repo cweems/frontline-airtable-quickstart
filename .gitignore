@@ -131,3 +131,6 @@ dist
 
 # Mac Filesystem
 *.DS_Store
+
+# Twilio Files
+*.twiliodeployinfo
