@@ -13,7 +13,7 @@ We recommend following the setup outlined Frontline node.js quickstart, which sh
 * An SMS enabled [phone number](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#sign-up-for-a-twilio-account-and-get-a-phone-number).
 * A [Twilio Frontline instance](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#create-a-new-twilio-frontline-instance).
 * Twilio Conversations [configured](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#configure-twilio-conversations) to use the Frontline Conversations service as it's default conversation service.
-* Additionally, you'll need to [copy this Airtable Base template](https://airtable.com/shrJUwh8WzSkzIqJr) and have your [Airtable API key](https://support.airtable.com/hc/en-us/articles/219046777-How-do-I-get-my-API-key-) along with your [Base ID](https://support.airtable.com/hc/en-us/articles/4405741487383-Understanding-Airtable-IDs).
+* Additionally, you'll need to [copy this Airtable Base template](https://airtable.com/shrbXF88oQlRh7ZXh) and have your [Airtable API key](https://support.airtable.com/hc/en-us/articles/219046777-How-do-I-get-my-API-key-) along with your [Base ID](https://support.airtable.com/hc/en-us/articles/4405741487383-Understanding-Airtable-IDs).
 
 Once you reach the step to "Configure the Frontline Integration Service" you are ready to deploy this app.
 
