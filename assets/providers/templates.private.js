@@ -1,22 +1,22 @@
 const mergeFields = (templateString, customerDetails) => {
     try {
-        // Get all {{text}} instances
-        console.log('here @@@@@@')
         function replacer (match) {
-            console.log(match);
-            if (customerDetails.hasOwnProperty(match)) {
-                return customerDetails[match]
+
+            // Get value of text between curly braces
+            const matchText = match.match(/{{(.+?)}}/)
+
+            // If the value is in the customerDetails, replace it
+            if (customerDetails.hasOwnProperty(matchText[1])) {
+                return customerDetails[matchText[1]]
             }
     
-            return `${match} is blank`
+            // Otherwise say that the value is blank in the template.
+            return `${matchText[1]} is blank`
         }
     
-        // const result = templateString.replace(/(?<=\{{).+?(?=\}})/, replacer);
-        const result = templateString.replace(/{{(.+?)}}/g, replacer);
-
-        return result;
+        return templateString.replace(/{{(.+?)}}/g, replacer);
     } catch (err) {
-        console.log(err);
+        throw new Error(err);
     }
 }
 
@@ -38,17 +38,22 @@ const getTemplates = async (context, customerDetails) => {
                 let category = record.get('category');
                 let text = record.get('text');
 
-                let mergedText = mergeFields(text, customerDetails);
+                const templateBody = {
+                    content: mergeFields(text, customerDetails),
+                    whatsAppApproved: record.get('whatsAppApproved')
+                }
 
+                // Create a new object entry for template category
+                // if none exists
                 if (!templates.hasOwnProperty(category)) {
                     const entry = {
                         display_name: category,
-                        templates: [{content: mergedText}],
+                        templates: [templateBody],
                     }
                     
                     templates[category] = entry
                 } else {
-                    templates[category]['templates'].push({content: mergedText});
+                    templates[category]['templates'].push(templateBody);
                 }
             });
         
@@ -65,9 +70,11 @@ const getTemplates = async (context, customerDetails) => {
         
         }, function done(err) {
             if (err) { reject(err) }
+            
+            // Read template categories into an array
             let response = [];
-            for (const template in templates) {
-                response.push(templates[template]);
+            for (const templateCategory in templates) {
+                response.push(templates[templateCategory]);
             }
             //console.log(response);
             resolve(response);
