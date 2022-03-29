@@ -6,6 +6,7 @@
   "scripts": {
     "start": "twilio-run",
     "deploy": "twilio-run deploy",
+    "okta": "node ./okta-setup.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -16,5 +17,10 @@
     "axios": "^0.26.0",
     "twilio": "^3.75.0",
     "twilio-run": "^3.4.1"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.6.7",
+    "opn": "^6.0.0",
+    "prompts": "^2.4.2"
   }
 }
