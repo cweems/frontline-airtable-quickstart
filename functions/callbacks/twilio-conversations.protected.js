@@ -3,10 +3,9 @@ const { getCustomerByNumber } = require(path);
 
 exports.handler = async function(context, event, callback) {
     console.log("Conversations Callback");
-    console.log(JSON.stringify(event.body));
     const client = context.getTwilioClient();
 
-    const eventType = event.body.EventType;
+    const eventType = event.EventType;
 
     switch (eventType) {
         case "onConversationAdd": {
@@ -21,7 +20,7 @@ exports.handler = async function(context, event, callback) {
              * More info about the `onConversationAdd` webhook: https://www.twilio.com/docs/conversations/conversations-webhooks#onconversationadd
              * More info about handling incoming conversations: https://www.twilio.com/docs/frontline/handle-incoming-conversations
              */
-            const customerNumber = event.body['MessagingBinding.Address'];
+            const customerNumber = event['MessagingBinding.Address'];
             const isIncomingConversation = !!customerNumber
 
             if (isIncomingConversation) {
@@ -40,6 +39,7 @@ exports.handler = async function(context, event, callback) {
                     callback(err);
                 }
             }
+            callback(null, null);
             break;
         }
         case "onParticipantAdded": {
@@ -75,6 +75,7 @@ exports.handler = async function(context, event, callback) {
                     callback(err);
                 }
             }
+            callback(null, null);
             break;
         }
 
@@ -103,5 +104,3 @@ const setCustomerParticipantProperties = async (customerParticipant, customerDet
             .catch(e => console.log("Update customer participant failed: ", e));
     }
 }
-
-module.exports = conversationsCallbackHandler;

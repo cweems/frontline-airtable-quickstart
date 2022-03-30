@@ -12,7 +12,7 @@ exports.handler = async function(context, event, callback) {
 
         default: {
             console.log('Unknown location: ', location);
-            callback(422, err);
+            callback(422, location);
         }
     }
 };

@@ -24,7 +24,7 @@ function wrapUp(jsonResponse) {
     console.log("Enter these credentials at:\nhttps://console.twilio.com/us1/develop/frontline/manage/single-sign-on?frameUrl=%2Fconsole%2Ffrontline%2Fsso%3Fx-target-region%3Dus1");
 
     setTimeout(() => {
-        opn('https://www.twilio.com/console/flex/single-sign-on');
+        opn('https://console.twilio.com/us1/develop/frontline/manage/single-sign-on?frameUrl=%2Fconsole%2Ffrontline%2Fsso%3Fx-target-region%3Dus1');
     }, 3000);
 
     setTimeout(() => {
