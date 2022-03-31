@@ -1,22 +1,34 @@
-// Map between customer address and worker identity
-// Used to determine to which worker route a new conversation with a particular customer
-//
-// {
-//     customerAddress: workerIdentity
-// }
-//
-// Example:
-//     {
-//         'whatsapp:+12345678': 'john@example.com'
-//     }
-
 // Create global variable to memoize customer data
 // so that we do not ping airtable for all customers every page load
+
 let customers = [];
 
+const getAirtableCustomerById = async (context, customerId) => {    
+    const Airtable = require('airtable');
+    const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
+
+    return new Promise((resolve, reject) => {
+        let customer;
+        
+        base('Customers').select({
+            view: "Grid view",
+            filterByFormula: `{id} = '${customerId}'`,
+            maxRecords: 1,
+        }).eachPage(function page(records, fetchNextPage) {        
+            customer = formatCustomerRecord(records[0]);
+            fetchNextPage();
+        }, function done(err) {
+            if (err) {
+                reject(JSON.stringify(err))
+            }
+
+            resolve(customer);
+        });
+    });
+}
+
 // Retrieve customers from Airtable
-// Example:
-const retrieveAirtableData = async (context) => {
+const getAirtableCustomers = async (context) => {
     const Airtable = require('airtable');
     const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
 
@@ -30,32 +42,10 @@ const retrieveAirtableData = async (context) => {
             // This function (`page`) will get called for each page of records.
         
             records.forEach(function(record) {
-                let unformattedAddress = record.get('sms');
-                let formattedAddress = unformattedAddress.replace(/[-()]/gm, "");
-                let formattedRecord = {
-                    customer_id: record.get('id'),
-                    display_name: record.get('name'),
-                    channels: [
-                        { type: 'sms', value: record.get('sms') },
-                        { type: 'whatsapp', value: record.get('whatsapp') }
-                    ],
-                    links: [
-                        { type: 'LinkedIn', value: record.get('linkedin'), display_name: 'Social Media Profile' },
-                        { type: 'Email', value: `mailto:${record.get('email')}`, display_name: 'Email Address' }
-                    ],
-                    details:{
-                        title: "Information",
-                        content: record.get('notes')
-                    },
-                    worker: record.get('owner'),
-                    address: formattedAddress
-                }
+                let formattedRecord = formatCustomerRecord(record);
                 formattedCustomers.push(formattedRecord);
             });
-        
-            // To fetch the next page of records, call `fetchNextPage`.
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
+
             console.log('fetching next page...')
             fetchNextPage();
         
@@ -67,9 +57,37 @@ const retrieveAirtableData = async (context) => {
 
 }
 
+const formatCustomerRecord = (customerRecord) => {
+    try {
+        let unformattedAddress = customerRecord.get('sms');
+        let formattedAddress = unformattedAddress.replace(/[-()]/gm, "");
+    
+        return {
+            customer_id: customerRecord.get('id'),
+            display_name: customerRecord.get('name'),
+            channels: [
+                { type: 'sms', value: customerRecord.get('sms') },
+                { type: 'whatsapp', value: customerRecord.get('whatsapp') }
+            ],
+            links: [
+                { type: 'LinkedIn', value: customerRecord.get('linkedin'), display_name: 'Social Media Profile' },
+                { type: 'Email', value: `mailto:${customerRecord.get('email')}`, display_name: 'Email Address' }
+            ],
+            details:{
+                title: "Information",
+                content: customerRecord.get('notes')
+            },
+            worker: customerRecord.get('owner'),
+            address: formattedAddress
+        }
+    } catch(err) {
+        return new Error(err);
+    }
+}
+
 const findWorkerForCustomer = async (context, customerNumber) => {
     if(customers.length === 0) {
-        customers = await retrieveAirtableData(context);
+        customers = await getAirtableCustomers(context);
     }
 
     const workerForCustomer = customers.filter(customer => {
@@ -87,7 +105,7 @@ const findWorkerForCustomer = async (context, customerNumber) => {
 
 const findRandomWorker = async (context) => {
     if(customers.length === 0) {
-        customers = await retrieveAirtableData(context);
+        customers = await getAirtableCustomers(context);
     }
     
     const uniqueWorkers = [];
@@ -109,7 +127,7 @@ const getCustomersList = async (context, worker, pageSize, anchor) => {
     // Pull airtable customers on first load, otherwise use
     // what's stored in memory
     if(anchor === undefined || customers.length === 0) {
-        customers = await retrieveAirtableData(context);
+        customers = await getAirtableCustomers(context);
     }
     const workerCustomers = customers.filter(customer => customer.worker === worker);
     const list = workerCustomers.map(customer => ({
@@ -133,16 +151,14 @@ const getCustomersList = async (context, worker, pageSize, anchor) => {
 
 const getCustomerByNumber = async (context, customerNumber) => {
     if (customers.length === 0) {
-        customers = await retrieveAirtableData(context);
+        customers = await getAirtableCustomers(context);
     }
     return customers.find(customer => customer.channels.find(channel => String(channel.value) === String(customerNumber)));
 };
 
 const getCustomerById = async (context, customerId) => {
-    if (customers.length === 0) {
-        customers = await retrieveAirtableData(context);
-    }
-    return customers.find(customer => String(customer.customer_id) === String(customerId));
+    customer = await getAirtableCustomerById(context, customerId);
+    return customer;
 };
 
 module.exports = {
