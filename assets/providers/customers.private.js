@@ -28,17 +28,25 @@ const getAirtableCustomerById = async (context, customerId) => {
 }
 
 // Retrieve customers from Airtable
-const getAirtableCustomers = async (context) => {
+const getAirtableCustomers = async (context, workerId) => {
     const Airtable = require('airtable');
     const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
+
+    let querySettings = {
+        view: "Grid view",
+        pageSize: 100
+    }
+
+    // Filter airtable results by owner if we know
+    // the worker ID
+    if (workerId) {
+        querySettings['filterByFormula'] = `{owner} = '${workerId}'`;
+    }
 
     return new Promise((resolve, reject) => {
         let formattedCustomers = [];
     
-        base('Customers').select({
-            view: "Grid view",
-            pageSize: 100
-        }).eachPage(function page(records, fetchNextPage) {
+        base('Customers').select(querySettings).eachPage(function page(records, fetchNextPage) {
             // This function (`page`) will get called for each page of records.
         
             records.forEach(function(record) {
@@ -127,7 +135,7 @@ const getCustomersList = async (context, worker, pageSize, anchor) => {
     // Pull airtable customers on first load, otherwise use
     // what's stored in memory
     if(anchor === undefined || customers.length === 0) {
-        customers = await getAirtableCustomers(context);
+        customers = await getAirtableCustomers(context, worker);
     }
     const workerCustomers = customers.filter(customer => customer.worker === worker);
     const list = workerCustomers.map(customer => ({
