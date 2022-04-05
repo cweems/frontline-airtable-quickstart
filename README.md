@@ -5,6 +5,9 @@
 
 This repository implements a Twilio Frontline integration service using Twilio Serverless with Airtable as the contact databse.
 
+> :warning: **Not an official Twilio Project**: this software is not owned or maintained by Twilio. There is no Twilio support SLA for this integration.
+> :warning: **Scaling limits**: Airtable's API has a maximum throughput of 5 requests per second. This product is not suitable for large teams, see the Integration Limits section for more details. 
+
 ## Prerequisites
 
 We recommend following the setup outlined Frontline node.js quickstart, which shows you how to do the following:
@@ -88,3 +91,18 @@ In the Twilio Console, go to ***Frontline > Manage > Callbacks*** and copy / pas
 This callback receives the `onConversationAdded` and `onParticipantAdded` events from the Conversations service and sets the name of the conversation as well as the participant and participant avatar that is joining the conversation.
 
 To set them up, go to ***Conversations > Services > Default Frontline Service > Webhooks***. Then select the `onConversationAdded` and `onParticipantAdded` events.
+
+## Integration Limits
+We don't recommend using this integration to support more than 30 Frontline users and/or more than 4000 contacts. Here are the details to know:
+
+Airtable's API has a maximum throughput of 5 requests per second. This integration service generates a request to Airtable under the following conditions:
+* When a user opens the contact list the first time, or refreshes the contact list. Multiple API calls may be generated if more than 100 contacts are returned.
+* When a user opens a customer profile page.
+* When a user opens the templates menu from the mesage compose input.
+* When a new customer texts inbound and creates a new conversation.
+
+Additionally, Twilio Functions has the following limits:
+* Functions may not run for longer than 10 seconds.
+* You can't have more than 30 function invocations running concurrently.
+
+If you are returning a large contact list to users, your Twilio function may time out before Airtable returns all the pages of the query results.
