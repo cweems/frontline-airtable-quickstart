@@ -58,6 +58,8 @@ Deploy this Serverless app with one command:
 ```bash
 twilio serverless:deploy
 ```
+> :information_source: **Make sure you deploy the integration service to the same Twilio Account as your Frontline Service**: This integration service relies on Twilio signed webhooks to protect your callback URLs. As a result, the callback URLs will reject requests from a different Twilio account with a 403 error. You can check which account you're deploying to with `twilio profiles:list` and add another account with `twilio profiles:add`. 
+
 If your deploy is successful, you should see an output that looks like this:
 <img width="1056" alt="Screen Shot 2022-03-02 at 4 32 36 PM" src="https://user-images.githubusercontent.com/1418949/156485462-1a1c5143-3259-4a80-b0b1-0ce8520951aa.png">
 
