@@ -1,5 +1,5 @@
 exports.handler = async function(context, event, callback) {
-    console.log('outgoingConversationCallbackHandler');
+    console.log('Handling outgoing conversation.');
 
     const location = event.Location;
 
@@ -18,7 +18,7 @@ exports.handler = async function(context, event, callback) {
 };
 
 const handleGetProxyAddress = (context, event, callback) => {
-    console.log('Getting Proxy Address');
+    console.log('Getting proxy address.');
     const channelName = event.ChannelType;
 
     const proxyAddress = getCustomerProxyAddress(context, channelName);
@@ -27,7 +27,7 @@ const handleGetProxyAddress = (context, event, callback) => {
     // otherwise the app doesn't know from which number send a message to a customer
     if (proxyAddress) {
         const resp = { proxy_address: proxyAddress };
-        console.log(`Got proxy address! ${proxyAddress}`);
+        console.log(`Selected a proxy address ${proxyAddress}`);
         return callback(null, resp);
     }
 

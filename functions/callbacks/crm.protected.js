@@ -28,7 +28,7 @@ exports.handler = async function(context, event, callback) {
 
 
 const handleGetCustomerDetailsByCustomerIdCallback = async (event, context) => {
-    console.log('Getting Customer details: ', event.CustomerId);
+    console.log(`Getting customer details for customer ID ${event.CustomerId}`);
 
     const customerId = event.CustomerId;
 
@@ -52,7 +52,7 @@ const handleGetCustomerDetailsByCustomerIdCallback = async (event, context) => {
 };
 
 const handleGetCustomersListCallback = async (context, event) => {
-    console.log('Getting Customers list');
+    console.log('Getting customers list.');
 
     const workerIdentity = event.Worker;
     const pageSize = event.PageSize;

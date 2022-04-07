@@ -6,18 +6,19 @@ const { getTemplates } = require(templatesPath);
 
 exports.handler = async function(context, event, callback) {
     try {
-        console.log(event);
         const location = event.Location;
     
         // Location helps to determine which information was requested.
         // CRM callback is a general purpose tool and might be used to fetch different kind of information
         switch (location) {
             case 'GetTemplatesByCustomerId': {
+                console.log('Getting templates by customer ID.')
+
                 try {
                     const resp = await handleGetTemplatesByCustomerIdCallback(context, event);
                     callback(null, resp);
                 } catch(err) {
-                    console.log(err);
+                    console.log(`Failed to get templates by customer ID: ${err}`);
                     callback(err);
                 }
                 
@@ -40,7 +41,6 @@ const handleGetTemplatesByCustomerIdCallback = async (context, event) => {
     if (!customerDetails) {
         throw new Error('Customer not found');
     }
-    console.log(customerDetails);
     
     let templates = await getTemplates(context, customerDetails);
 

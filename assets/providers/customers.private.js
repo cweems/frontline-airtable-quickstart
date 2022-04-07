@@ -3,18 +3,14 @@
 
 let customers = [];
 
-const getAirtableCustomerById = async (context, customerId) => {    
+const getAirtableCustomerByParams = async (context, params) => {    
     const Airtable = require('airtable');
     const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
 
     return new Promise((resolve, reject) => {
         let customer;
         
-        base('Customers').select({
-            view: "Grid view",
-            filterByFormula: `{id} = '${customerId}'`,
-            maxRecords: 1,
-        }).eachPage(function page(records, fetchNextPage) {        
+        base('Customers').select(params).eachPage(function page(records, fetchNextPage) {
             customer = formatCustomerRecord(records[0]);
             fetchNextPage();
         }, function done(err) {
@@ -28,7 +24,7 @@ const getAirtableCustomerById = async (context, customerId) => {
 }
 
 // Retrieve customers from Airtable
-const getAirtableCustomers = async (context, workerId) => {
+const getAllAirtableCustomers = async (context, workerId) => {
     const Airtable = require('airtable');
     const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
 
@@ -54,7 +50,6 @@ const getAirtableCustomers = async (context, workerId) => {
                 formattedCustomers.push(formattedRecord);
             });
 
-            console.log('fetching next page...')
             fetchNextPage();
         
         }, function done(err) {
@@ -95,7 +90,7 @@ const formatCustomerRecord = (customerRecord) => {
 
 const findWorkerForCustomer = async (context, customerNumber) => {
     if(customers.length === 0) {
-        customers = await getAirtableCustomers(context);
+        customers = await getAllAirtableCustomers(context);
     }
 
     const workerForCustomer = customers.filter(customer => {
@@ -113,13 +108,13 @@ const findWorkerForCustomer = async (context, customerNumber) => {
 
 const findRandomWorker = async (context) => {
     if(customers.length === 0) {
-        customers = await getAirtableCustomers(context);
+        customers = await getAllAirtableCustomers(context);
     }
     
     const uniqueWorkers = [];
 
     for (const customer of customers) {
-        console.log(customer.worker);
+
         if (!uniqueWorkers.includes(customer.worker)) {
             uniqueWorkers.push(customer.worker);
         }
@@ -130,12 +125,11 @@ const findRandomWorker = async (context) => {
 }
 
 const getCustomersList = async (context, worker, pageSize, anchor) => {
-    console.log(pageSize, anchor);
 
     // Pull airtable customers on first load, otherwise use
     // what's stored in memory
     if(anchor === undefined || customers.length === 0) {
-        customers = await getAirtableCustomers(context, worker);
+        customers = await getAllAirtableCustomers(context, worker);
     }
     const workerCustomers = customers.filter(customer => customer.worker === worker);
     const list = workerCustomers.map(customer => ({
@@ -158,14 +152,20 @@ const getCustomersList = async (context, worker, pageSize, anchor) => {
 };
 
 const getCustomerByNumber = async (context, customerNumber) => {
-    if (customers.length === 0) {
-        customers = await getAirtableCustomers(context);
-    }
-    return customers.find(customer => customer.channels.find(channel => String(channel.value) === String(customerNumber)));
+    const customer = await getAirtableCustomerByParams(context, {
+        view: "Grid view",
+        filterByFormula: `{sms} = '${customerNumber}'`,
+        maxRecords: 1,
+    });
+    return customer;
 };
 
 const getCustomerById = async (context, customerId) => {
-    customer = await getAirtableCustomerById(context, customerId);
+    const customer = await getAirtableCustomerByParams(context, {
+        view: "Grid view",
+        filterByFormula: `{id} = '${customerId}'`,
+        maxRecords: 1,
+    });
     return customer;
 };
 

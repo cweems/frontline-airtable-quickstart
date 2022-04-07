@@ -2,10 +2,10 @@ const path = Runtime.getAssets()['/providers/customers.js'].path;
 const { getCustomerByNumber } = require(path);
 
 exports.handler = async function(context, event, callback) {
-    console.log("Conversations Callback");
     const client = context.getTwilioClient();
-
+    
     const eventType = event.EventType;
+    console.log(`Received a webhook event from Twilio Conversations: ${eventType}`);
 
     switch (eventType) {
         case "onConversationAdd": {
@@ -20,6 +20,9 @@ exports.handler = async function(context, event, callback) {
              * More info about the `onConversationAdd` webhook: https://www.twilio.com/docs/conversations/conversations-webhooks#onconversationadd
              * More info about handling incoming conversations: https://www.twilio.com/docs/frontline/handle-incoming-conversations
              */
+
+            console.log('Setting conversation properties.')
+
             const customerNumber = event['MessagingBinding.Address'];
             const isIncomingConversation = !!customerNumber
 
@@ -39,7 +42,6 @@ exports.handler = async function(context, event, callback) {
                     callback(err);
                 }
             }
-            callback(null, null);
             break;
         }
         case "onParticipantAdded": {
@@ -55,11 +57,14 @@ exports.handler = async function(context, event, callback) {
              * More info about the customer_id: https://www.twilio.com/docs/frontline/my-customers#customer-id
              * And more here you can see all the properties of a participant which you can set: https://www.twilio.com/docs/frontline/data-transfer-objects#participant
              */
+            
             const conversationSid = event.ConversationSid;
             const participantSid = event.ParticipantSid;
             const customerNumber = event['MessagingBinding.Address'];
             const isCustomer = customerNumber && !event.Identity;
-
+            
+            console.log(`Getting participant properties for ${customerNumber || event.Identity}`)
+            
             if (isCustomer) {
                 try {
                     const customerParticipant = await client.conversations
@@ -75,7 +80,7 @@ exports.handler = async function(context, event, callback) {
                     callback(err);
                 }
             }
-            callback(null, null);
+
             break;
         }
 

@@ -2,10 +2,9 @@ const path = Runtime.getAssets()['/providers/customers.js'].path;
 const { findWorkerForCustomer, findRandomWorker } = require(path);
 
 exports.handler = async function(context, event, callback) {
+    console.log("Handling custom routing callback.");
+    
     let client = context.getTwilioClient();
-
-    console.log("Frontline Routing Callback");
-    console.log(JSON.stringify(event));
 
     try {
         const conversationSid = event.ConversationSid;
@@ -26,7 +25,7 @@ const routeConversation = async (context, conversationSid, customerNumber) => {
     if (!workerIdentity) { // Customer doesn't have a worker
 
         // Select a random worker
-        console.log('no worker identity...')
+        console.log('No assigned worker found, selecting a random worker.')
         workerIdentity = await findRandomWorker(context);
 
         // Or you can define default worker for unknown customers.
@@ -46,6 +45,6 @@ const routeConversationToWorker = async (client, conversationSid, workerIdentity
         .conversations(conversationSid)
         .participants
         .create({ identity: workerIdentity })
-        .then(participant => console.log('Create agent participant: ', participant.sid))
-        .catch(e => console.log('Create agent participant: ', e));
+        .then(participant => console.log('Created agent participant: ', participant.sid))
+        .catch(err => console.log(`Failed to create agent participant: ${err}`));
 }
