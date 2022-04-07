@@ -1,55 +1,51 @@
-const path = Runtime.getAssets()['/providers/customers.js'].path
-const { getCustomerById } = require(path);
+// eslint-disable-next-line no-undef
+const customersPath = Runtime.getAssets()['/providers/customers.js'].path
+const { getCustomerById } = require(customersPath)
 
+// eslint-disable-next-line no-undef
 const templatesPath = Runtime.getAssets()['/providers/templates.js'].path
-const { getTemplates } = require(templatesPath);
+const { getTemplates } = require(templatesPath)
 
-exports.handler = async function(context, event, callback) {
-    try {
-        const location = event.Location;
-    
-        // Location helps to determine which information was requested.
-        // CRM callback is a general purpose tool and might be used to fetch different kind of information
-        switch (location) {
-            case 'GetTemplatesByCustomerId': {
-                console.log('Getting templates by customer ID.')
+exports.handler = async function (context, event, callback) {
+  try {
+    const location = event.Location
 
-                try {
-                    const resp = await handleGetTemplatesByCustomerIdCallback(context, event);
-                    callback(null, resp);
-                } catch(err) {
-                    console.log(`Failed to get templates by customer ID: ${err}`);
-                    callback(err);
-                }
-                
-                break;
-            }
-    
-            default: {
-                callback(422, `Unknown location: location`)
-            }
+    // Location helps to determine which information was requested.
+    // CRM callback is a general purpose tool and might be used to fetch different kind of information
+    switch (location) {
+      case 'GetTemplatesByCustomerId': {
+        console.log('Getting templates by customer ID.')
+
+        try {
+          const resp = await handleGetTemplatesByCustomerIdCallback(context, event)
+          callback(null, resp)
+        } catch (err) {
+          console.log(`Failed to get templates by customer ID: ${err}`)
+          callback(err)
         }
-    } catch(err) {
-        console.log(err);
-        callback(err);
+
+        break
+      }
+
+      default: {
+        callback(new Error(`422 Unknown location: ${location}`))
+      }
     }
-};
+  } catch (err) {
+    console.log(err)
+    callback(err)
+  }
+}
 
 const handleGetTemplatesByCustomerIdCallback = async (context, event) => {
-    const customerDetails = await getCustomerById(context, event.CustomerId);
-    
-    if (!customerDetails) {
-        throw new Error('Customer not found');
-    }
-    
-    let templates = await getTemplates(context, customerDetails);
+  const customerDetails = await getCustomerById(context, event.CustomerId)
 
-    // Respond with compiled Templates
-    return templates;
-};
+  if (!customerDetails) {
+    throw new Error('Customer not found')
+  }
 
-const compileTemplate = (template, customer) => {
-    let compiledTemplate = template.replace(/{{Name}}/, customer.display_name);
-    compiledTemplate = compiledTemplate.replace(/{{Author}}/, customer.worker);
-    return compiledTemplate;
-};
+  const templates = await getTemplates(context, customerDetails)
+
+  // Respond with compiled Templates
+  return templates
+}
