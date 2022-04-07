@@ -58,13 +58,7 @@ const getTemplates = async (context, customerDetails) => {
       // To fetch the next page of records, call `fetchNextPage`.
       // If there are more records, `page` will get called again.
       // If there are no more records, `done` will get called.
-      try {
-        console.log('fetching next page...')
-        fetchNextPage()
-      } catch (err) {
-        console.log('err', err)
-        throw new Error(err)
-      }
+      fetchNextPage()
     }, function done (err) {
       if (err) { reject(err) }
 

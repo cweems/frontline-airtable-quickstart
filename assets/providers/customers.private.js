@@ -64,22 +64,22 @@ const formatCustomerRecord = (customerRecord) => {
     const formattedAddress = unformattedAddress.replace(/[-()]/gm, '')
 
     return {
-      customer_id: customerRecord.get('id'),
-      display_name: customerRecord.get('name'),
+      customer_id: `${customerRecord.get('id')}`,
+      display_name: `${customerRecord.get('name')}`,
       channels: [
-        { type: 'sms', value: customerRecord.get('sms') },
-        { type: 'whatsapp', value: customerRecord.get('whatsapp') }
+        { type: 'sms', value: `${customerRecord.get('sms')}` },
+        { type: 'whatsapp', value: `${customerRecord.get('whatsapp')}` }
       ],
       links: [
-        { type: 'LinkedIn', value: customerRecord.get('linkedin'), display_name: 'Social Media Profile' },
+        { type: 'LinkedIn', value: `${customerRecord.get('linkedin')}`, display_name: 'Social Media Profile' },
         { type: 'Email', value: `mailto:${customerRecord.get('email')}`, display_name: 'Email Address' }
       ],
       details: {
         title: 'Information',
-        content: customerRecord.get('notes')
+        content: `${customerRecord.get('notes')}`
       },
-      worker: customerRecord.get('owner'),
-      address: formattedAddress
+      worker: `${customerRecord.get('owner')}`,
+      address: `${formattedAddress}`
     }
   } catch (err) {
     return new Error(err)
