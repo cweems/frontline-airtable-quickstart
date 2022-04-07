@@ -6,6 +6,7 @@
 This repository implements a Twilio Frontline integration service using Twilio Serverless with Airtable as the contact databse.
 
 > :warning: **Not an official Twilio Project**: this software is not owned or maintained by Twilio. There is no Twilio support SLA for this integration.
+
 > :warning: **Scaling limits**: Airtable's API has a maximum throughput of 5 requests per second. This product is not suitable for large teams, see the Integration Limits section for more details. 
 
 ## Prerequisites
@@ -58,7 +59,7 @@ Deploy this Serverless app with one command:
 ```bash
 twilio serverless:deploy
 ```
-> :information_source: **Make sure you deploy the integration service to the same Twilio Account as your Frontline Service**: This integration service relies on Twilio signed webhooks to protect your callback URLs. As a result, the callback URLs will reject requests from a different Twilio account with a 403 error. You can check which account you're deploying to with `twilio profiles:list` and add another account with `twilio profiles:add`. 
+> :information_source: **Always deploy to the same Twilio Account as your Frontline Service**: This integration service uses Twilio-signed requests to protect the callback URLs. The callback URLs will reject requests from a different Twilio account with a 403 error. You can check which account you're deploying to with `twilio profiles:list` and add another account with `twilio profiles:add`. 
 
 If your deploy is successful, you should see an output that looks like this:
 <img width="1056" alt="Screen Shot 2022-03-02 at 4 32 36 PM" src="https://user-images.githubusercontent.com/1418949/156485462-1a1c5143-3259-4a80-b0b1-0ce8520951aa.png">
@@ -93,6 +94,11 @@ In the Twilio Console, go to ***Frontline > Manage > Callbacks*** and copy / pas
 This callback receives the `onConversationAdded` and `onParticipantAdded` events from the Conversations service and sets the name of the conversation as well as the participant and participant avatar that is joining the conversation.
 
 To set them up, go to ***Conversations > Services > Default Frontline Service > Webhooks***. Then select the `onConversationAdded` and `onParticipantAdded` events.
+
+## Data Format
+A sample Airtable template can be found [here](https://airtable.com/shrbXF88oQlRh7ZXh).
+
+Note that addresses in the `sms` and `whatsapp` columns must be in e164 format, e.g. +1234567890. If numbers are formatted differently, the integration may fail to find customers in Airtable when a conversation is initiated from an inbound message.
 
 ## Integration Limits
 We don't recommend using this integration to support more than 30 Frontline users and/or more than 4000 contacts. Here are the details to know:
