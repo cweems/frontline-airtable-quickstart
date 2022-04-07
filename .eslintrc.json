@@ -11,5 +11,6 @@
         "ecmaVersion": "latest"
     },
     "rules": {
+        "no-prototype-builtins": "off"
     }
 }

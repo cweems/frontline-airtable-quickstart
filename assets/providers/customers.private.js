@@ -1,178 +1,174 @@
 // Create global variable to memoize customer data
 // so that we do not ping airtable for all customers every page load
 
-let customers = [];
+let customers = []
 
-const getAirtableCustomerByParams = async (context, params) => {    
-    const Airtable = require('airtable');
-    const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
+const getAirtableCustomerByParams = async (context, params) => {
+  const Airtable = require('airtable')
+  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
 
-    return new Promise((resolve, reject) => {
-        let customer;
-        
-        base('Customers').select(params).eachPage(function page(records, fetchNextPage) {
-            customer = formatCustomerRecord(records[0]);
-            fetchNextPage();
-        }, function done(err) {
-            if (err) {
-                reject(JSON.stringify(err))
-            }
+  return new Promise((resolve, reject) => {
+    let customer
 
-            resolve(customer);
-        });
-    });
+    base('Customers').select(params).eachPage(function page (records, fetchNextPage) {
+      customer = formatCustomerRecord(records[0])
+      fetchNextPage()
+    }, function done (err) {
+      if (err) {
+        reject(JSON.stringify(err))
+      }
+
+      resolve(customer)
+    })
+  })
 }
 
 // Retrieve customers from Airtable
 const getAllAirtableCustomers = async (context, workerId) => {
-    const Airtable = require('airtable');
-    const base = new Airtable({apiKey: context.AIRTABLE_API_KEY}).base(context.AIRTABLE_BASE_ID);
+  const Airtable = require('airtable')
+  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
 
-    let querySettings = {
-        view: "Grid view",
-        pageSize: 100
-    }
+  const querySettings = {
+    view: 'Grid view',
+    pageSize: 100
+  }
 
-    // Filter airtable results by owner if we know
-    // the worker ID
-    if (workerId) {
-        querySettings['filterByFormula'] = `{owner} = '${workerId}'`;
-    }
+  // Filter airtable results by owner if we know
+  // the worker ID
+  if (workerId) {
+    querySettings.filterByFormula = `{owner} = '${workerId}'`
+  }
 
-    return new Promise((resolve, reject) => {
-        let formattedCustomers = [];
-    
-        base('Customers').select(querySettings).eachPage(function page(records, fetchNextPage) {
-            // This function (`page`) will get called for each page of records.
-        
-            records.forEach(function(record) {
-                let formattedRecord = formatCustomerRecord(record);
-                formattedCustomers.push(formattedRecord);
-            });
+  return new Promise((resolve, reject) => {
+    const formattedCustomers = []
 
-            fetchNextPage();
-        
-        }, function done(err) {
-            if (err) { reject(err) }
-            resolve(formattedCustomers);
-        });
-    });
+    base('Customers').select(querySettings).eachPage(function page (records, fetchNextPage) {
+      // This function (`page`) will get called for each page of records.
 
+      records.forEach(function (record) {
+        const formattedRecord = formatCustomerRecord(record)
+        formattedCustomers.push(formattedRecord)
+      })
+
+      fetchNextPage()
+    }, function done (err) {
+      if (err) { reject(err) }
+      resolve(formattedCustomers)
+    })
+  })
 }
 
 const formatCustomerRecord = (customerRecord) => {
-    try {
-        let unformattedAddress = customerRecord.get('sms');
-        let formattedAddress = unformattedAddress.replace(/[-()]/gm, "");
-    
-        return {
-            customer_id: customerRecord.get('id'),
-            display_name: customerRecord.get('name'),
-            channels: [
-                { type: 'sms', value: customerRecord.get('sms') },
-                { type: 'whatsapp', value: customerRecord.get('whatsapp') }
-            ],
-            links: [
-                { type: 'LinkedIn', value: customerRecord.get('linkedin'), display_name: 'Social Media Profile' },
-                { type: 'Email', value: `mailto:${customerRecord.get('email')}`, display_name: 'Email Address' }
-            ],
-            details:{
-                title: "Information",
-                content: customerRecord.get('notes')
-            },
-            worker: customerRecord.get('owner'),
-            address: formattedAddress
-        }
-    } catch(err) {
-        return new Error(err);
+  try {
+    const unformattedAddress = customerRecord.get('sms')
+    const formattedAddress = unformattedAddress.replace(/[-()]/gm, '')
+
+    return {
+      customer_id: customerRecord.get('id'),
+      display_name: customerRecord.get('name'),
+      channels: [
+        { type: 'sms', value: customerRecord.get('sms') },
+        { type: 'whatsapp', value: customerRecord.get('whatsapp') }
+      ],
+      links: [
+        { type: 'LinkedIn', value: customerRecord.get('linkedin'), display_name: 'Social Media Profile' },
+        { type: 'Email', value: `mailto:${customerRecord.get('email')}`, display_name: 'Email Address' }
+      ],
+      details: {
+        title: 'Information',
+        content: customerRecord.get('notes')
+      },
+      worker: customerRecord.get('owner'),
+      address: formattedAddress
     }
+  } catch (err) {
+    return new Error(err)
+  }
 }
 
 const findWorkerForCustomer = async (context, customerNumber) => {
-    if(customers.length === 0) {
-        customers = await getAllAirtableCustomers(context);
+  if (customers.length === 0) {
+    customers = await getAllAirtableCustomers(context)
+  }
+
+  const workerForCustomer = customers.filter(customer => {
+    if (customerNumber.includes(customer.address)) {
+      return customer
     }
+  })
 
-    const workerForCustomer = customers.filter(customer => {
-        if (customerNumber.includes(customer.address)) {
-            return customer;
-        }
-    });
+  if (workerForCustomer.length > 0) {
+    return workerForCustomer[0].worker
+  }
 
-    if (workerForCustomer.length > 0) {
-        return workerForCustomer[0].worker;
-    }
-
-    return null;
+  return null
 }
 
 const findRandomWorker = async (context) => {
-    if(customers.length === 0) {
-        customers = await getAllAirtableCustomers(context);
+  if (customers.length === 0) {
+    customers = await getAllAirtableCustomers(context)
+  }
+
+  const uniqueWorkers = []
+
+  for (const customer of customers) {
+    if (!uniqueWorkers.includes(customer.worker)) {
+      uniqueWorkers.push(customer.worker)
     }
-    
-    const uniqueWorkers = [];
+  }
 
-    for (const customer of customers) {
-
-        if (!uniqueWorkers.includes(customer.worker)) {
-            uniqueWorkers.push(customer.worker);
-        }
-    }
-
-    const randomIndex = Math.floor(Math.random() * uniqueWorkers.length)
-    return uniqueWorkers[randomIndex]
+  const randomIndex = Math.floor(Math.random() * uniqueWorkers.length)
+  return uniqueWorkers[randomIndex]
 }
 
 const getCustomersList = async (context, worker, pageSize, anchor) => {
+  // Pull airtable customers on first load, otherwise use
+  // what's stored in memory
+  if (anchor === undefined || customers.length === 0) {
+    customers = await getAllAirtableCustomers(context, worker)
+  }
+  const workerCustomers = customers.filter(customer => customer.worker === worker)
+  const list = workerCustomers.map(customer => ({
+    display_name: customer.display_name,
+    customer_id: customer.customer_id,
+    avatar: customer.avatar
+  }))
 
-    // Pull airtable customers on first load, otherwise use
-    // what's stored in memory
-    if(anchor === undefined || customers.length === 0) {
-        customers = await getAllAirtableCustomers(context, worker);
-    }
-    const workerCustomers = customers.filter(customer => customer.worker === worker);
-    const list = workerCustomers.map(customer => ({
-        display_name: customer.display_name,
-        customer_id: customer.customer_id,
-        avatar: customer.avatar,
-    }));
+  if (!pageSize) {
+    return list
+  }
 
-    if (!pageSize) {
-        return list
-    }
-
-    if (anchor) {
-        const lastIndex = list.findIndex((c) => String(c.customer_id) === String(anchor))
-        const nextIndex = lastIndex + 1
-        return list.slice(nextIndex, nextIndex + pageSize)
-    } else {
-        return list.slice(0, pageSize)
-    }
-};
+  if (anchor) {
+    const lastIndex = list.findIndex((c) => String(c.customer_id) === String(anchor))
+    const nextIndex = lastIndex + 1
+    return list.slice(nextIndex, nextIndex + pageSize)
+  } else {
+    return list.slice(0, pageSize)
+  }
+}
 
 const getCustomerByNumber = async (context, customerNumber) => {
-    const customer = await getAirtableCustomerByParams(context, {
-        view: "Grid view",
-        filterByFormula: `{sms} = '${customerNumber}'`,
-        maxRecords: 1,
-    });
-    return customer;
-};
+  const customer = await getAirtableCustomerByParams(context, {
+    view: 'Grid view',
+    filterByFormula: `{sms} = '${customerNumber}'`,
+    maxRecords: 1
+  })
+  return customer
+}
 
 const getCustomerById = async (context, customerId) => {
-    const customer = await getAirtableCustomerByParams(context, {
-        view: "Grid view",
-        filterByFormula: `{id} = '${customerId}'`,
-        maxRecords: 1,
-    });
-    return customer;
-};
+  const customer = await getAirtableCustomerByParams(context, {
+    view: 'Grid view',
+    filterByFormula: `{id} = '${customerId}'`,
+    maxRecords: 1
+  })
+  return customer
+}
 
 module.exports = {
-    findWorkerForCustomer,
-    findRandomWorker,
-    getCustomerById,
-    getCustomersList,
-    getCustomerByNumber
-};
+  findWorkerForCustomer,
+  findRandomWorker,
+  getCustomerById,
+  getCustomersList,
+  getCustomerByNumber
+}
