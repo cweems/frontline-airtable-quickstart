@@ -31,7 +31,7 @@ Follow these steps to clone the repository, install dependencies, and set enviro
 git clone
 
 # Change to the project directory:
-cd frontline-quick-deploy
+cd frontline-airtable-quickstart
 
 # Install dependencies:
 npm install
