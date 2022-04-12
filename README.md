@@ -9,6 +9,8 @@ This repository implements a Twilio Frontline integration service using Twilio S
 
 > :warning: **Scaling limits**: Airtable's API has a maximum throughput of 5 requests per second. This product is not suitable for large teams, see the Integration Limits section for more details. 
 
+## ▶️ [Video Setup Tutorial](https://www.youtube.com/watch?v=KDrhR1HyrlE)
+
 ## Prerequisites
 
 We recommend following the setup outlined Frontline node.js quickstart, which shows you how to do the following:
