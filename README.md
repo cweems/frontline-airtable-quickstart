@@ -13,15 +13,16 @@ This repository implements a Twilio Frontline integration service using Twilio S
 
 ## Prerequisites
 
-We recommend following the setup outlined Frontline node.js quickstart, which shows you how to do the following:
+We recommend following the setup outlined in the [Frontline node.js quickstart](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart), or watching the [setup video](https://www.youtube.com/watch?v=KDrhR1HyrlE), which walk you through the following:
 
 * A Twilio Account. Don't have one? [Sign up](https://www.twilio.com/try-twilio) for free!
 * An SMS enabled [phone number](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#sign-up-for-a-twilio-account-and-get-a-phone-number).
-* A [Twilio Frontline instance](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#create-a-new-twilio-frontline-instance).
+* A [Twilio Frontline instance](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#create-a-new-twilio-frontline-instance). 
+**Note: I got an error here "Could not create environment," then upgraded my account to an employee account, refreshed, and it worked. Is it possible that frontline will not work on trial accounts? If so, we should make a note here.**
 * Twilio Conversations [configured](https://www.twilio.com/docs/frontline/nodejs-demo-quickstart#configure-twilio-conversations) to use the Frontline Conversations service as it's default conversation service.
 * Additionally, you'll need to [copy this Airtable Base template](https://airtable.com/shrbXF88oQlRh7ZXh) and have your [Airtable API key](https://support.airtable.com/hc/en-us/articles/219046777-How-do-I-get-my-API-key-) along with your [Base ID](https://support.airtable.com/hc/en-us/articles/4405741487383-Understanding-Airtable-IDs).
 
-Once you reach the step to "Configure the Frontline Integration Service" you are ready to deploy this app.
+Once you reach the step to "Configure the Frontline Integration Service" you are ready to deploy this app using the following directions - no need to follow any further steps in the quickstart documentation.
 
 ## Project Setup
 Follow these steps to clone the repository, install dependencies, and set environment variables:
@@ -31,10 +32,13 @@ Follow these steps to clone the repository, install dependencies, and set enviro
 git clone
 
 # Change to the project directory:
-cd frontline-airtable-quickstart
+cd frontline-airtable-quickstart **note - this is different in the video**
 
 # Install dependencies:
 npm install
+
+**note - in the video, the Okta setup steps occur before this**
+**note - in the vidoe, when we get back from setting up Okta in Frontline, it tells us to Assign the Application, but does not make it clear how/where we navigate to do so**
 
 # Copy the sample environment variables file to .env:
 cp .env.example .env
@@ -42,6 +46,7 @@ cp .env.example .env
 
 ### Environment Variables Reference
 Here are the environment variables that must be configured for the app to run:
+**note - the 'code' command is super slick - is that an iTerm thing?**
 
 ```bash
 ACCOUNT_SID= # Your twilio account SID, found in the console.
