@@ -106,7 +106,7 @@ Note that addresses in the `sms` and `whatsapp` columns must be in e164 format, 
 We don't recommend using this integration to support more than 30 Frontline users and/or more than 4000 contacts. Here are the details to know:
 
 Airtable's API has a maximum throughput of 5 requests per second. This integration service generates a request to Airtable under the following conditions:
-* When a user opens the contact list the first time, or refreshes the contact list. Multiple API calls may be generated if more than 100 contacts are returned.
+* When a user opens the contact list the first time, or refreshes the contact list after the Twilio Serverless instance has "cooled off". Multiple API calls may be generated if more than 100 contacts are returned.
 * When a user opens a customer profile page.
 * When a user opens the templates menu from the mesage compose input.
 * When a new customer texts inbound and creates a new conversation.
@@ -115,4 +115,10 @@ Additionally, Twilio Functions has the following limits:
 * Functions may not run for longer than 10 seconds.
 * You can't have more than 30 function invocations running concurrently.
 
+### Contact Data Caching
+Since pulling in a large list of contacts is the most data-intensive operation against Airtable, we cache contact data between Twilio Serverless invocations. You can see the implementation of the caching mechanism [here](https://github.com/cweems/frontline-airtable-quickstart/blob/main/assets/providers/customers.private.js#L166).
+
+Each time a user refreshes, we check to see if a contact list is stored in memory from another Serverless invocation. If there's nothing in memory, we do a pull of all contacts for that Frontline worker. If there is a replica stored in memory, we query Airtable for any records added after the last data pull, and then append those to the list of contacts. Twilio Serverless retains the cache of contacts for about 5 minutes, reducing the need to pull data from Airtable and speeding up interactions for Frontline users.
+
+### Integration Limits tl;dr
 If you are returning a large contact list to users, your Twilio function may time out before Airtable returns all the pages of the query results.

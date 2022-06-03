@@ -4,9 +4,18 @@
 let lastFetch = ''
 let customers = []
 
-const getAirtableCustomerByParams = async (context, params) => {
+const initAirtable = (context) => {
   const Airtable = require('airtable')
-  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
+  return new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
+}
+
+const setLastFetch = () => {
+  const date = new Date()
+  lastFetch = date.toISOString()
+}
+
+const getAirtableCustomerByParams = async (context, params) => {
+  const base = initAirtable(context)
 
   return new Promise((resolve, reject) => {
     let customer
@@ -26,8 +35,7 @@ const getAirtableCustomerByParams = async (context, params) => {
 
 // Retrieve customers from Airtable
 const getAllAirtableCustomers = async (context, workerId) => {
-  const Airtable = require('airtable')
-  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
+  const base = initAirtable(context)
 
   const querySettings = {
     view: 'Grid view',
@@ -60,8 +68,7 @@ const getAllAirtableCustomers = async (context, workerId) => {
 }
 
 const getNewCustomers = (context, worker) => {
-  const Airtable = require('airtable')
-  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
+  const base = initAirtable(context)
 
   const querySettings = {
     view: 'Grid view',
@@ -157,18 +164,12 @@ const getCustomersList = async (context, worker, pageSize, anchor) => {
   // Pull airtable customers on first load,
   // otherwise use what's stored in memory
   if (anchor === undefined || customers.length === 0) {
-    console.log('hard pull')
     customers = await getAllAirtableCustomers(context, worker)
-    const date = new Date()
-    lastFetch = date.toISOString()
+    setLastFetch()
   } else {
-    console.log('prepping to pull new customers, lastFetch was at, ', lastFetch)
     const newCustomers = await getNewCustomers(context, worker)
     customers = customers.concat(newCustomers)
-    const date = new Date()
-    lastFetch = date.toISOString()
-    console.log('existing customers, only getting new ones. here are the new ones: \n', newCustomers)
-    console.log('last fetch is now: ', lastFetch)
+    setLastFetch()
   }
 
   const workerCustomers = customers.filter(customer => customer.worker === worker)
