@@ -1,6 +1,7 @@
 // Create global variable to memoize customer data
 // so that we do not ping airtable for all customers every page load
 
+let lastFetch = ''
 let customers = []
 
 const getAirtableCustomerByParams = async (context, params) => {
@@ -58,6 +59,35 @@ const getAllAirtableCustomers = async (context, workerId) => {
   })
 }
 
+const getNewCustomers = (context, worker) => {
+  const Airtable = require('airtable')
+  const base = new Airtable({ apiKey: context.AIRTABLE_API_KEY }).base(context.AIRTABLE_BASE_ID)
+
+  const querySettings = {
+    view: 'Grid view',
+    pageSize: 100,
+    filterByFormula: `IS_AFTER(CREATED_TIME(), DATETIME_PARSE('${lastFetch}'))`
+  }
+
+  return new Promise((resolve, reject) => {
+    const newCustomers = []
+
+    base('Customers').select(querySettings).eachPage(function page (records, fetchNextPage) {
+      // This function (`page`) will get called for each page of records.
+
+      records.forEach(function (record) {
+        const formattedRecord = formatCustomerRecord(record)
+        newCustomers.push(formattedRecord)
+      })
+
+      fetchNextPage()
+    }, function done (err) {
+      if (err) { reject(err) }
+      resolve(newCustomers)
+    })
+  })
+}
+
 const formatCustomerRecord = (customerRecord) => {
   try {
     const unformattedAddress = customerRecord.get('sms')
@@ -95,6 +125,8 @@ const findWorkerForCustomer = async (context, customerNumber) => {
     if (customerNumber.includes(customer.address)) {
       return customer
     }
+
+    return null
   })
 
   if (workerForCustomer.length > 0) {
@@ -122,11 +154,23 @@ const findRandomWorker = async (context) => {
 }
 
 const getCustomersList = async (context, worker, pageSize, anchor) => {
-  // Pull airtable customers on first load, otherwise use
-  // what's stored in memory
+  // Pull airtable customers on first load,
+  // otherwise use what's stored in memory
   if (anchor === undefined || customers.length === 0) {
+    console.log('hard pull')
     customers = await getAllAirtableCustomers(context, worker)
+    const date = new Date()
+    lastFetch = date.toISOString()
+  } else {
+    console.log('prepping to pull new customers, lastFetch was at, ', lastFetch)
+    const newCustomers = await getNewCustomers(context, worker)
+    customers = customers.concat(newCustomers)
+    const date = new Date()
+    lastFetch = date.toISOString()
+    console.log('existing customers, only getting new ones. here are the new ones: \n', newCustomers)
+    console.log('last fetch is now: ', lastFetch)
   }
+
   const workerCustomers = customers.filter(customer => customer.worker === worker)
   const list = workerCustomers.map(customer => ({
     display_name: customer.display_name,
